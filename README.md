@@ -1,2 +1,2 @@
-# Platzi
-programacionBasicaCurso
+# Rosary
+holy-rosary or rosario-completo
