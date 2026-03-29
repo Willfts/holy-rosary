@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Holy Rosary</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:#0d0a07;color:#e8d8b8;font-family:'EB Garamond',Georgia,serif;min-height:100vh;overflow-x:hidden;}
+  .bg{position:fixed;inset:0;background:radial-gradient(ellipse at 20% 50%,rgba(120,60,10,0.15) 0%,transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(80,30,5,0.12) 0%,transparent 50%),radial-gradient(ellipse at 60% 80%,rgba(100,50,8,0.1) 0%,transparent 40%);pointer-events:none;z-index:0;}
+  .app{position:relative;z-index:1;max-width:680px;margin:0 auto;padding:0 1rem;}
+  .screen{display:none;}
+  .screen.active{display:block;}
+
+  .lang-bar{display:flex;align-items:center;justify-content:center;padding:1rem 0 0;gap:0;}
+  .lang-btn{font-family:'Cinzel',serif;font-size:0.63rem;letter-spacing:0.18em;text-transform:uppercase;padding:0.42rem 0.95rem;border:1px solid rgba(90,62,32,0.4);background:transparent;color:#5a4030;cursor:pointer;transition:all 0.3s;}
+  .lang-btn:first-child{border-radius:2px 0 0 2px;}
+  .lang-btn:last-child{border-radius:0 2px 2px 0;border-left:none;}
+  .lang-btn.active{background:rgba(100,60,15,0.25);color:#d4a96a;border-color:#5a3e20;}
+
+  #intro{min-height:100vh;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem 1rem;gap:1.5rem;}
+  #intro.active{display:flex;}
+  .intro-eyebrow{font-family:'Cinzel',serif;font-size:0.7rem;letter-spacing:0.22em;color:#5a4030;text-transform:uppercase;}
+  .intro-title{font-family:'Cinzel',serif;font-size:clamp(1.7rem,5.5vw,2.6rem);font-weight:400;color:#d4a96a;letter-spacing:0.06em;line-height:1.2;}
+  .intro-sub{font-size:1.05rem;color:#a08060;font-style:italic;line-height:1.8;max-width:380px;}
+  .intro-verse{font-size:0.92rem;color:#7a6045;font-style:italic;line-height:1.8;border-left:2px solid #5a3e20;padding-left:1.1rem;text-align:left;max-width:380px;}
+  .btn-gold{font-family:'Cinzel',serif;font-size:0.85rem;letter-spacing:0.15em;color:#d4a96a;background:transparent;border:1px solid #5a3e20;padding:0.8rem 2rem;cursor:pointer;transition:all 0.4s;text-transform:uppercase;}
+  .btn-gold:hover{background:rgba(100,60,15,0.3);border-color:#d4a96a;}
+  .day-note{font-size:0.78rem;color:#3a2a15;font-style:italic;}
+
+  #select{min-height:100vh;display:none;flex-direction:column;padding:1.5rem 1rem 2rem;gap:1.2rem;}
+  #select.active{display:flex;}
+  .select-title{font-family:'Cinzel',serif;font-size:1.1rem;color:#d4a96a;text-align:center;letter-spacing:0.1em;}
+  .select-sub{font-size:0.88rem;color:#6a5040;font-style:italic;text-align:center;}
+  .mystery-set-card{border:1px solid rgba(90,62,32,0.35);padding:1rem 1.2rem;cursor:pointer;transition:all 0.3s;display:flex;flex-direction:column;gap:0.3rem;}
+  .mystery-set-card:hover{border-color:#d4a96a;background:rgba(100,60,15,0.15);}
+  .mystery-set-card.today{border-color:#8a5a20;background:rgba(90,50,10,0.2);}
+  .set-today-badge{font-family:'Cinzel',serif;font-size:0.58rem;letter-spacing:0.18em;text-transform:uppercase;color:#8a5a20;margin-bottom:0.1rem;}
+  .set-name{font-family:'Cinzel',serif;font-size:1rem;color:#d4a96a;font-weight:400;}
+  .set-days{font-size:0.82rem;color:#6a5040;font-style:italic;}
+  .set-preview{font-size:0.82rem;color:#7a6050;}
+
+  #mystery{min-height:100vh;display:none;flex-direction:column;}
+  #mystery.active{display:flex;}
+  .top-bar{display:flex;justify-content:space-between;align-items:center;padding:0.6rem 1rem 0;border-bottom:1px solid rgba(90,62,32,0.15);}
+  .back-link{font-family:'Cinzel',serif;font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;color:#6a5040;background:none;border:none;cursor:pointer;padding:0;}
+  .back-link:hover{color:#d4a96a;}
+  .audio-toggle{display:flex;align-items:center;gap:0.4rem;font-size:0.7rem;color:#6a5040;cursor:pointer;user-select:none;}
+  .audio-dot{width:9px;height:9px;border-radius:50%;border:1px solid #5a4030;background:transparent;transition:all 0.2s;}
+  .audio-dot.on{background:#8a5a20;border-color:#d4a96a;}
+
+  .mystery-header{padding:1rem 1rem 0.7rem;text-align:center;border-bottom:1px solid rgba(90,62,32,0.3);}
+  .mystery-set-label{font-family:'Cinzel',serif;font-size:0.6rem;letter-spacing:0.22em;color:#6a4a20;text-transform:uppercase;margin-bottom:0.2rem;}
+  .mystery-number{font-family:'Cinzel',serif;font-size:0.68rem;letter-spacing:0.2em;color:#7a6045;text-transform:uppercase;margin-bottom:0.3rem;}
+  .mystery-title{font-family:'Cinzel',serif;font-size:clamp(1.05rem,3.5vw,1.6rem);font-weight:400;color:#d4a96a;line-height:1.3;}
+  .mystery-fruit{font-size:0.8rem;color:#6a5030;font-style:italic;margin-top:0.2rem;}
+  .mystery-scripture{font-size:0.9rem;color:#8a7055;font-style:italic;margin-top:0.35rem;line-height:1.6;}
+
+  .video-section{padding:0.7rem 1rem;background:#080604;}
+  .video-label{font-family:'Cinzel',serif;font-size:0.6rem;letter-spacing:0.2em;color:#5a4030;text-align:center;margin-bottom:0.45rem;text-transform:uppercase;}
+  .video-wrapper{position:relative;width:100%;padding-top:56.25%;background:#060402;border:1px solid rgba(90,62,32,0.25);}
+  .video-wrapper iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:none;}
+  .video-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(8,4,2,0.85);cursor:pointer;transition:opacity 0.5s;z-index:2;}
+  .video-overlay.hidden{opacity:0;pointer-events:none;}
+  .play-icon{width:50px;height:50px;border:2px solid rgba(212,169,106,0.6);border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:0.6rem;}
+  .overlay-text{font-family:'Cinzel',serif;font-size:0.67rem;letter-spacing:0.15em;color:#a08060;text-transform:uppercase;}
+
+  .prayer-section{flex:1;padding:0.9rem 1rem;display:flex;flex-direction:column;gap:0.8rem;}
+  .meditation-text{font-size:0.97rem;color:#9a8060;font-style:italic;line-height:1.8;text-align:center;padding:0 0.4rem;}
+  .divider{height:1px;background:linear-gradient(to right,transparent,rgba(90,62,32,0.4),transparent);margin:0.1rem 0;}
+  .decade-label{font-family:'Cinzel',serif;font-size:0.64rem;letter-spacing:0.18em;color:#5a4030;text-align:center;text-transform:uppercase;}
+  .prayer-display{background:rgba(20,12,5,0.6);border:1px solid rgba(90,62,32,0.2);padding:1rem 1.2rem;min-height:100px;display:flex;flex-direction:column;gap:0.45rem;}
+  .prayer-name{font-family:'Cinzel',serif;font-size:0.64rem;letter-spacing:0.18em;color:#7a5a30;text-transform:uppercase;}
+  .prayer-text{font-size:1.02rem;line-height:1.9;color:#c8b890;font-style:italic;}
+
+  .bead-tracker{display:flex;align-items:center;justify-content:center;gap:0.4rem;padding:0.3rem 0;flex-wrap:wrap;}
+  .bead{width:12px;height:12px;border-radius:50%;border:1px solid rgba(90,62,32,0.5);background:transparent;transition:all 0.3s;cursor:pointer;}
+  .bead.prayed{background:#8a5a20;border-color:#d4a96a;}
+  .bead.current{background:rgba(212,169,106,0.2);border-color:#d4a96a;box-shadow:0 0 5px rgba(212,169,106,0.4);}
+
+  .controls{padding:0.7rem 1rem;display:flex;gap:0.6rem;align-items:center;justify-content:center;border-top:1px solid rgba(90,62,32,0.2);flex-wrap:wrap;}
+  .btn{font-family:'Cinzel',serif;font-size:0.64rem;letter-spacing:0.14em;text-transform:uppercase;padding:0.55rem 1rem;border:1px solid rgba(90,62,32,0.5);background:transparent;color:#a08060;cursor:pointer;transition:all 0.3s;}
+  .btn:hover{border-color:#d4a96a;color:#d4a96a;background:rgba(100,60,15,0.2);}
+  .btn.primary{border-color:#d4a96a;color:#d4a96a;}
+  .btn.primary:hover{background:rgba(212,169,106,0.15);}
+  .btn:disabled{opacity:0.3;cursor:default;}
+  .btn:disabled:hover{border-color:rgba(90,62,32,0.5);color:#a08060;background:transparent;}
+
+  #completion{min-height:100vh;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:3rem 1rem;gap:1.6rem;}
+  #completion.active{display:flex;}
+  .comp-title{font-family:'Cinzel',serif;font-size:clamp(1.2rem,4vw,1.8rem);color:#d4a96a;font-weight:400;letter-spacing:0.06em;}
+  .comp-text{font-size:1rem;color:#8a7055;font-style:italic;line-height:1.9;max-width:420px;}
+
+  @keyframes flicker{0%,100%{opacity:0.9;}50%{opacity:0.6;}25%,75%{opacity:0.8;}}
+  .flicker{animation:flicker 3s ease-in-out infinite;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+  .fade-in{animation:fadeIn 0.6s ease forwards;}
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="app">
+
+<!-- INTRO -->
+<div id="intro" class="screen active">
+  <div class="lang-bar">
+    <button class="lang-btn active" onclick="setLang('en')">English</button>
+    <button class="lang-btn" onclick="setLang('es')">Español</button>
+  </div>
+  <svg width="40" height="62" viewBox="0 0 40 62" style="opacity:0.8;margin-top:0.5rem;">
+    <rect x="16" y="0" width="8" height="62" fill="#5a3e20"/>
+    <rect x="0" y="16" width="40" height="8" fill="#5a3e20"/>
+    <rect x="16" y="0" width="8" height="62" fill="none" stroke="#8a6030" stroke-width="0.5"/>
+    <rect x="0" y="16" width="40" height="8" fill="none" stroke="#8a6030" stroke-width="0.5"/>
+  </svg>
+  <div>
+    <p class="intro-eyebrow" id="i-eyebrow">The Holy Rosary</p>
+    <h1 class="intro-title" id="i-title">The Complete<br>Rosary</h1>
+  </div>
+  <p class="intro-sub" id="i-sub">Twenty mysteries. Four sets.<br>A prayer for every day of the week.</p>
+  <blockquote class="intro-verse">
+    <span id="i-verse">"The Rosary is the most excellent form of prayer and the most efficacious means of attaining eternal life."</span>
+    <br><br>
+    <span style="color:#5a3e20;font-size:0.83rem;" id="i-vref">— Pope Gregory XIII</span>
+  </blockquote>
+  <button class="btn-gold" onclick="showSelect()" id="i-btn">Choose Mysteries</button>
+  <p class="day-note" id="i-day"></p>
+</div>
+
+<!-- SELECT -->
+<div id="select" class="screen">
+  <div class="lang-bar" style="padding:0 0 0.5rem;">
+    <button class="lang-btn active" onclick="setLang('en')">EN</button>
+    <button class="lang-btn" onclick="setLang('es')">ES</button>
+  </div>
+  <p class="select-title" id="sel-title">Choose a Set of Mysteries</p>
+  <p class="select-sub" id="sel-sub">Select by day or by devotion</p>
+  <div id="set-cards"></div>
+</div>
+
+<!-- MYSTERY PRAYER -->
+<div id="mystery" class="screen">
+  <div class="top-bar">
+    <button class="back-link" onclick="showSelect()">← <span id="back-label">Mysteries</span></button>
+    <div class="lang-bar" style="padding:0;">
+      <button class="lang-btn active" onclick="setLang('en')">EN</button>
+      <button class="lang-btn" onclick="setLang('es')">ES</button>
+    </div>
+    <div class="audio-toggle" onclick="toggleAudio()">
+      <div class="audio-dot on" id="audio-dot"></div>
+      <span id="audio-label">Audio</span>
+    </div>
+  </div>
+  <div class="mystery-header">
+    <p class="mystery-set-label" id="m-set-label"></p>
+    <p class="mystery-number" id="m-number"></p>
+    <h2 class="mystery-title" id="m-title"></h2>
+    <p class="mystery-fruit" id="m-fruit"></p>
+    <p class="mystery-scripture" id="m-scripture"></p>
+  </div>
+  <div class="video-section">
+    <p class="video-label" id="vid-label">Contemplate · Sacred Scripture</p>
+    <div class="video-wrapper">
+      <iframe id="yt-player" src="" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+      <div class="video-overlay" id="video-overlay" onclick="revealVideo()">
+        <div class="play-icon">
+          <svg width="17" height="19" viewBox="0 0 17 19" fill="none"><path d="M1 1L16 9.5L1 18V1Z" stroke="#d4a96a" stroke-width="1.5" stroke-linejoin="round"/></svg>
+        </div>
+        <p class="overlay-text" id="overlay-text">Watch &amp; Meditate</p>
+      </div>
+    </div>
+  </div>
+  <div class="prayer-section">
+    <p class="meditation-text" id="m-meditation"></p>
+    <div class="divider"></div>
+    <p class="decade-label" id="m-decade-label"></p>
+    <div class="prayer-display">
+      <p class="prayer-name" id="p-name"></p>
+      <p class="prayer-text" id="p-text"></p>
+    </div>
+    <div class="bead-tracker" id="bead-tracker"></div>
+    <div class="controls">
+      <button class="btn" onclick="prevPrayer()" id="btn-prev" disabled>← <span id="lbl-back">Back</span></button>
+      <button class="btn primary" onclick="nextPrayer()" id="btn-next"><span id="lbl-next">Next</span> →</button>
+    </div>
+  </div>
+</div>
+
+<!-- COMPLETION -->
+<div id="completion" class="screen">
+  <svg class="flicker" width="28" height="48" viewBox="0 0 28 48">
+    <ellipse cx="14" cy="40" rx="7" ry="5" fill="#3a2a10"/>
+    <rect x="12" y="26" width="4" height="16" fill="#4a3618"/>
+    <ellipse cx="14" cy="24" rx="5" ry="8" fill="#d4a96a" opacity="0.9"/>
+    <ellipse cx="14" cy="20" rx="3" ry="5" fill="#f0d080" opacity="0.8"/>
+    <ellipse cx="14" cy="16" rx="1.5" ry="4" fill="#fff" opacity="0.6"/>
+  </svg>
+  <h2 class="comp-title" id="c-title">The Rosary is Complete</h2>
+  <p class="comp-text" id="c-text"></p>
+  <blockquote class="intro-verse" style="max-width:400px;">
+    <span id="c-verse">"Into your hands I commend my spirit."</span>
+    <br><br>
+    <span style="color:#5a3e20;font-size:0.83rem;">— St. Luke 23:46</span>
+  </blockquote>
+  <button class="btn-gold" onclick="showSelect()" id="c-btn">Pray Another Set</button>
+</div>
+
+</div>
+<script>
+let lang='en', currentSet=null, currentMystery=0, currentStep=0, audioOn=true, allSteps=[];
+const synth=window.speechSynthesis;
+
+const ui={
+  en:{
+    eyebrow:'The Holy Rosary',title:'The Complete<br>Rosary',
+    sub:'Twenty mysteries. Four sets.<br>A prayer for every day of the week.',
+    verse:'"The Rosary is the most excellent form of prayer and the most efficacious means of attaining eternal life."',
+    vref:'— Pope Gregory XIII',
+    btn:'Choose Mysteries',
+    selTitle:'Choose a Set of Mysteries',selSub:'Select by day or by devotion',
+    today:"Today's Mysteries",
+    back:'Mysteries',audioLabel:'Audio',
+    openPrayer:'Opening Prayer',closePrayer:'Closing Prayer',
+    fatimaPrayer:'Fátima Prayer',
+    hailMary:(i)=>`Hail Mary ${i} of 10`,
+    nextLabel:'Next',nextMystery:'Next Mystery',complete:'Complete ✦',
+    backLabel:'Back',
+    compText:'You have completed these sacred mysteries. May Our Lady intercede for you and draw you ever closer to her Son.',
+    compVerse:'"Into your hands I commend my spirit."',
+    compBtn:'Pray Another Set',
+    watchMeditate:'Watch & Meditate',
+    vidLabel:'Contemplate · Sacred Scripture',
+    fruitLabel:'Fruit of this Mystery',
+    sets:[
+      {key:'joyful',name:'The Joyful Mysteries',days:'Monday & Saturday',dayKeys:[1,6]},
+      {key:'sorrowful',name:'The Sorrowful Mysteries',days:'Tuesday & Friday',dayKeys:[2,5]},
+      {key:'glorious',name:'The Glorious Mysteries',days:'Wednesday & Sunday',dayKeys:[3,0]},
+      {key:'luminous',name:'The Luminous Mysteries',days:'Thursday',dayKeys:[4]}
+    ]
+  },
+  es:{
+    eyebrow:'El Santo Rosario',title:'El Rosario<br>Completo',
+    sub:'Veinte misterios. Cuatro grupos.<br>Una oración para cada día de la semana.',
+    verse:'"El Rosario es la forma más excelente de oración y el medio más eficaz para alcanzar la vida eterna."',
+    vref:'— Papa Gregorio XIII',
+    btn:'Elegir Misterios',
+    selTitle:'Elige un Grupo de Misterios',selSub:'Selecciona por día o por devoción',
+    today:'Misterios de Hoy',
+    back:'Misterios',audioLabel:'Audio',
+    openPrayer:'Oración de Apertura',closePrayer:'Oración Final',
+    fatimaPrayer:'Oración de Fátima',
+    hailMary:(i)=>`Ave María ${i} de 10`,
+    nextLabel:'Siguiente',nextMystery:'Siguiente Misterio',complete:'Completar ✦',
+    backLabel:'Atrás',
+    compText:'Has completado estos sagrados misterios. Que Nuestra Señora interceda por ti y te acerque cada vez más a su Hijo.',
+    compVerse:'"Padre, en tus manos encomiendo mi espíritu."',
+    compBtn:'Rezar Otro Grupo',
+    watchMeditate:'Ver y Meditar',
+    vidLabel:'Contempla · Sagrada Escritura',
+    fruitLabel:'Fruto de este Misterio',
+    sets:[
+      {key:'joyful',name:'Los Misterios Gozosos',days:'Lunes y Sábado',dayKeys:[1,6]},
+      {key:'sorrowful',name:'Los Misterios Dolorosos',days:'Martes y Viernes',dayKeys:[2,5]},
+      {key:'glorious',name:'Los Misterios Gloriosos',days:'Miércoles y Domingo',dayKeys:[3,0]},
+      {key:'luminous',name:'Los Misterios Luminosos',days:'Jueves',dayKeys:[4]}
+    ]
+  }
+};
+
+const mysteriesData={
+  en:{
+    joyful:[
+      {number:'First Mystery',title:'The Annunciation',fruit:'Humility',scripture:'"Behold, you will conceive in your womb and bear a son, and you shall name him Jesus." — St. Luke 1:31',meditation:'The Angel Gabriel announces God\'s plan. Mary\'s "yes" — her fiat — changed the world. What is God asking of you today?',videoId:'JbMBCWj42xo',videoStart:0},
+      {number:'Second Mystery',title:'The Visitation',fruit:'Love of Neighbor',scripture:'"When Elizabeth heard Mary\'s greeting, the infant leaped in her womb." — St. Luke 1:41',meditation:'Mary travels in haste to serve her cousin. Love is not passive — it moves toward those in need.',videoId:'JbMBCWj42xo',videoStart:180},
+      {number:'Third Mystery',title:'The Nativity',fruit:'Poverty of Spirit',scripture:'"She wrapped him in swaddling clothes and laid him in a manger." — St. Luke 2:7',meditation:'The King of the Universe is born in a stable. He chose poverty so that we might become rich in grace.',videoId:'JbMBCWj42xo',videoStart:360},
+      {number:'Fourth Mystery',title:'The Presentation',fruit:'Obedience',scripture:'"My eyes have seen your salvation, which you prepared in the sight of all peoples." — St. Luke 2:30-31',meditation:'Simeon held the Light of the World in his arms. Every act of obedience to God brings us closer to that light.',videoId:'JbMBCWj42xo',videoStart:540},
+      {number:'Fifth Mystery',title:'The Finding in the Temple',fruit:'Piety',scripture:'"Did you not know that I must be in my Father\'s house?" — St. Luke 2:49',meditation:'Jesus is found among the teachers, about his Father\'s business. Do we seek him first in our daily lives?',videoId:'JbMBCWj42xo',videoStart:720}
+    ],
+    sorrowful:[
+      {number:'First Mystery',title:'The Agony in the Garden',fruit:'Sorrow for Sin',scripture:'"Father, if you are willing, remove this cup from me; yet not my will but yours be done." — St. Luke 22:42',meditation:'"My soul is sorrowful even to death. Remain here and keep watch with me." — St. Matthew 26:38',videoId:'5dZvPKV3RFE',videoStart:175},
+      {number:'Second Mystery',title:'The Scourging at the Pillar',fruit:'Mortification',scripture:'"He was wounded for our transgressions, crushed for our iniquities." — Isaiah 53:5',meditation:'He accepted every stripe in silence, that our wounds might be healed. By his stripes we are made whole.',videoId:'5dZvPKV3RFE',videoStart:680},
+      {number:'Third Mystery',title:'The Crowning with Thorns',fruit:'Moral Courage',scripture:'"They wove a crown out of thorns and placed it on his head." — St. Matthew 27:29',meditation:'He who is King of Kings bore a crown of mockery, that we might receive the crown of eternal glory.',videoId:'5dZvPKV3RFE',videoStart:820},
+      {number:'Fourth Mystery',title:'The Carrying of the Cross',fruit:'Patience',scripture:'"If anyone wishes to come after me, he must deny himself and take up his cross daily." — St. Luke 9:23',meditation:'With each fall he rose again. He carried the cross for love of you. What cross do you carry for love of him?',videoId:'5dZvPKV3RFE',videoStart:1100},
+      {number:'Fifth Mystery',title:'The Crucifixion',fruit:'Perseverance',scripture:'"Father, forgive them, for they know not what they do." — St. Luke 23:34',meditation:'Behold the Lamb of God. This is love — not that we loved God, but that he loved us first and gave himself for us.',videoId:'5dZvPKV3RFE',videoStart:1800}
+    ],
+    glorious:[
+      {number:'First Mystery',title:'The Resurrection',fruit:'Faith',scripture:'"He is not here, for he has been raised just as he said." — St. Matthew 28:6',meditation:'The tomb is empty. Death has been conquered. Every sorrow we carry is held within the hope of the Resurrection.',videoId:'JLFSqtGJaKE',videoStart:0},
+      {number:'Second Mystery',title:'The Ascension',fruit:'Hope',scripture:'"He was lifted up, and a cloud took him from their sight." — Acts 1:9',meditation:'Jesus ascends to prepare a place for us. He does not leave us orphaned — he sends the Spirit and promises to return.',videoId:'JLFSqtGJaKE',videoStart:180},
+      {number:'Third Mystery',title:'The Descent of the Holy Spirit',fruit:'Love of God',scripture:'"They were all filled with the Holy Spirit." — Acts 2:4',meditation:'The fire of Pentecost transforms frightened disciples into fearless witnesses. The same Spirit dwells in you.',videoId:'JLFSqtGJaKE',videoStart:360},
+      {number:'Fourth Mystery',title:'The Assumption',fruit:'Grace of a Holy Death',scripture:'"A great sign appeared in the sky, a woman clothed with the sun." — Revelation 12:1',meditation:'Mary is taken body and soul into heaven — a foretaste of the resurrection that awaits all who love God.',videoId:'JLFSqtGJaKE',videoStart:540},
+      {number:'Fifth Mystery',title:'The Coronation of Mary',fruit:'Trust in Mary\'s Intercession',scripture:'"A crown of twelve stars was on her head." — Revelation 12:1',meditation:'The Mother of God is crowned Queen of Heaven and Earth. She intercedes for us always before her Son.',videoId:'JLFSqtGJaKE',videoStart:720}
+    ],
+    luminous:[
+      {number:'First Mystery',title:'The Baptism of Jesus',fruit:'Openness to the Holy Spirit',scripture:'"This is my beloved Son, with whom I am well pleased." — St. Matthew 3:17',meditation:'The Father reveals his Son at the Jordan. Our own baptism made us sons and daughters of God. Do we live that dignity?',videoId:'GCWckNpGsig',videoStart:0},
+      {number:'Second Mystery',title:'The Wedding at Cana',fruit:'To Mary\'s Intercession',scripture:'"Do whatever he tells you." — St. John 2:5',meditation:'Mary intercedes for a young couple in need. Her words to the servants are her words to us: do whatever he tells you.',videoId:'GCWckNpGsig',videoStart:180},
+      {number:'Third Mystery',title:'The Proclamation of the Kingdom',fruit:'Repentance and Trust',scripture:'"The kingdom of God is at hand. Repent, and believe in the gospel." — St. Mark 1:15',meditation:'Jesus calls the poor, the sick, the sinner — the forgotten. His kingdom belongs to those who open their hands.',videoId:'GCWckNpGsig',videoStart:360},
+      {number:'Fourth Mystery',title:'The Transfiguration',fruit:'Desire for Holiness',scripture:'"His face shone like the sun and his clothes became white as light." — St. Matthew 17:2',meditation:'Peter, James, and John glimpse the divine glory. The face of Christ shines — this is what awaits those who love him.',videoId:'GCWckNpGsig',videoStart:540},
+      {number:'Fifth Mystery',title:'The Institution of the Eucharist',fruit:'Adoration',scripture:'"This is my body, which will be given for you; do this in memory of me." — St. Luke 22:19',meditation:'At the Last Supper, Jesus gives himself — completely, totally, forever. Every Mass makes Calvary present for us.',videoId:'GCWckNpGsig',videoStart:720}
+    ]
+  },
+  es:{
+    joyful:[
+      {number:'Primer Misterio',title:'La Anunciación',fruit:'Humildad',scripture:'"Concebirás en tu vientre y darás a luz un hijo, y le pondrás por nombre Jesús." — San Lucas 1:31',meditation:'El Ángel Gabriel anuncia el plan de Dios. El "sí" de María — su fiat — cambió el mundo. ¿Qué te pide Dios a ti hoy?',videoId:'JbMBCWj42xo',videoStart:0},
+      {number:'Segundo Misterio',title:'La Visitación',fruit:'Amor al Prójimo',scripture:'"Cuando Isabel oyó el saludo de María, el niño saltó en su vientre." — San Lucas 1:41',meditation:'María se apresura a servir a su prima. El amor no es pasivo — se mueve hacia quienes tienen necesidad.',videoId:'JbMBCWj42xo',videoStart:180},
+      {number:'Tercer Misterio',title:'La Natividad',fruit:'Pobreza de Espíritu',scripture:'"Lo envolvió en pañales y lo acostó en un pesebre." — San Lucas 2:7',meditation:'El Rey del Universo nace en un establo. Eligió la pobreza para que nosotros pudiéramos enriquecernos en la gracia.',videoId:'JbMBCWj42xo',videoStart:360},
+      {number:'Cuarto Misterio',title:'La Presentación en el Templo',fruit:'Obediencia',scripture:'"Mis ojos han visto tu salvación, que has preparado a la vista de todos los pueblos." — San Lucas 2:30-31',meditation:'Simeón sostuvo en sus brazos a la Luz del Mundo. Todo acto de obediencia a Dios nos acerca más a esa luz.',videoId:'JbMBCWj42xo',videoStart:540},
+      {number:'Quinto Misterio',title:'El Niño Perdido y Hallado en el Templo',fruit:'Piedad',scripture:'"¿No sabíais que debo ocuparme en las cosas de mi Padre?" — San Lucas 2:49',meditation:'Jesús es hallado entre los maestros, en los asuntos de su Padre. ¿Le buscamos a Él primero en nuestra vida diaria?',videoId:'JbMBCWj42xo',videoStart:720}
+    ],
+    sorrowful:[
+      {number:'Primer Misterio',title:'La Agonía en el Huerto',fruit:'Dolor por el Pecado',scripture:'"Padre, si quieres, aparta de mí este cáliz; pero no se haga mi voluntad, sino la tuya." — San Lucas 22:42',meditation:'"Mi alma está triste hasta la muerte. Quedaos aquí y velad conmigo." — San Mateo 26:38',videoId:'5dZvPKV3RFE',videoStart:175},
+      {number:'Segundo Misterio',title:'La Flagelación',fruit:'Mortificación',scripture:'"Él fue herido por nuestras transgresiones, molido por nuestros pecados." — Isaías 53:5',meditation:'Aceptó cada azote en silencio, para que nuestras heridas fueran sanadas. Por sus llagas somos curados.',videoId:'5dZvPKV3RFE',videoStart:680},
+      {number:'Tercer Misterio',title:'La Coronación de Espinas',fruit:'Valor Moral',scripture:'"Le pusieron una corona de espinas en la cabeza." — San Mateo 27:29',meditation:'Él, que es el Rey de Reyes, llevó una corona de burlas para que nosotros pudiéramos recibir la corona de gloria eterna.',videoId:'5dZvPKV3RFE',videoStart:820},
+      {number:'Cuarto Misterio',title:'La Cruz a Cuestas',fruit:'Paciencia',scripture:'"Si alguno quiere venir en pos de mí, niéguese a sí mismo y tome su cruz cada día." — San Lucas 9:23',meditation:'Con cada caída, volvió a levantarse. Cargó la cruz por amor a ti. ¿Qué cruz llevas tú por amor a Él?',videoId:'5dZvPKV3RFE',videoStart:1100},
+      {number:'Quinto Misterio',title:'La Crucifixión',fruit:'Perseverancia',scripture:'"Padre, perdónalos, porque no saben lo que hacen." — San Lucas 23:34',meditation:'He aquí el Cordero de Dios. Esto es el amor: no que nosotros hayamos amado a Dios, sino que Él nos amó primero.',videoId:'5dZvPKV3RFE',videoStart:1800}
+    ],
+    glorious:[
+      {number:'Primer Misterio',title:'La Resurrección',fruit:'Fe',scripture:'"No está aquí, pues ha resucitado, tal como lo había dicho." — San Mateo 28:6',meditation:'El sepulcro está vacío. La muerte ha sido vencida. Todo sufrimiento que llevamos está sostenido por la esperanza de la Resurrección.',videoId:'JLFSqtGJaKE',videoStart:0},
+      {number:'Segundo Misterio',title:'La Ascensión',fruit:'Esperanza',scripture:'"Fue elevado en una nube y desapareció de su vista." — Hechos 1:9',meditation:'Jesús sube al cielo para prepararnos un lugar. No nos deja huérfanos — envía el Espíritu y promete volver.',videoId:'JLFSqtGJaKE',videoStart:180},
+      {number:'Tercer Misterio',title:'La Venida del Espíritu Santo',fruit:'Amor de Dios',scripture:'"Todos quedaron llenos del Espíritu Santo." — Hechos 2:4',meditation:'El fuego de Pentecostés transforma a discípulos temerosos en testigos valientes. Ese mismo Espíritu habita en ti.',videoId:'JLFSqtGJaKE',videoStart:360},
+      {number:'Cuarto Misterio',title:'La Asunción de María',fruit:'Gracia de una Santa Muerte',scripture:'"Apareció en el cielo una señal grandiosa: una mujer vestida de sol." — Apocalipsis 12:1',meditation:'María es llevada en cuerpo y alma al cielo — anticipo de la resurrección que aguarda a todos los que aman a Dios.',videoId:'JLFSqtGJaKE',videoStart:540},
+      {number:'Quinto Misterio',title:'La Coronación de María',fruit:'Confianza en la Intercesión de María',scripture:'"Una corona de doce estrellas ceñía su cabeza." — Apocalipsis 12:1',meditation:'La Madre de Dios es coronada Reina del Cielo y de la Tierra. Ella intercede por nosotros siempre ante su Hijo.',videoId:'JLFSqtGJaKE',videoStart:720}
+    ],
+    luminous:[
+      {number:'Primer Misterio',title:'El Bautismo de Jesús en el Jordán',fruit:'Apertura al Espíritu Santo',scripture:'"Este es mi Hijo amado, en quien me complazco." — San Mateo 3:17',meditation:'El Padre revela a su Hijo en el Jordán. Nuestro bautismo nos hizo hijos e hijas de Dios. ¿Vivimos esa dignidad?',videoId:'GCWckNpGsig',videoStart:0},
+      {number:'Segundo Misterio',title:'Las Bodas de Caná',fruit:'Intercesión de María',scripture:'"Haced lo que él os diga." — San Juan 2:5',meditation:'María intercede por una joven pareja necesitada. Sus palabras a los sirvientes son sus palabras para nosotros.',videoId:'GCWckNpGsig',videoStart:180},
+      {number:'Tercer Misterio',title:'El Anuncio del Reino de Dios',fruit:'Conversión y Confianza',scripture:'"El reino de Dios está cerca. Convertíos y creed en el Evangelio." — San Marcos 1:15',meditation:'Jesús llama a los pobres, enfermos y pecadores — los olvidados. Su reino pertenece a quienes abren las manos.',videoId:'GCWckNpGsig',videoStart:360},
+      {number:'Cuarto Misterio',title:'La Transfiguración',fruit:'Deseo de Santidad',scripture:'"Su rostro brilló como el sol y sus vestidos se volvieron blancos como la luz." — San Mateo 17:2',meditation:'Pedro, Santiago y Juan atisban la gloria divina. El rostro de Cristo resplandece — esto es lo que aguarda a quienes le aman.',videoId:'GCWckNpGsig',videoStart:540},
+      {number:'Quinto Misterio',title:'La Institución de la Eucaristía',fruit:'Adoración',scripture:'"Este es mi cuerpo, que se entrega por vosotros; haced esto en memoria mía." — San Lucas 22:19',meditation:'En la Última Cena, Jesús se entrega — completa, total, eternamente. Cada Misa hace presente para nosotros el Calvario.',videoId:'GCWckNpGsig',videoStart:720}
+    ]
+  }
+};
+
+const prayersData={
+  en:{
+    ourFather:{name:'Our Father',text:'Our Father, who art in heaven,\nhallowed be thy Name.\nThy kingdom come, thy will be done,\non earth as it is in heaven.\nGive us this day our daily bread,\nand forgive us our trespasses,\nas we forgive those who trespass against us.\nAnd lead us not into temptation,\nbut deliver us from evil. Amen.'},
+    hailMary:{name:'Hail Mary',text:'Hail Mary, full of grace,\nthe Lord is with thee.\nBlessed art thou among women,\nand blessed is the fruit of thy womb, Jesus.\nHoly Mary, Mother of God,\npray for us sinners,\nnow and at the hour of our death. Amen.'},
+    glory:{name:'Glory Be',text:'Glory be to the Father,\nand to the Son,\nand to the Holy Spirit.\nAs it was in the beginning,\nis now and ever shall be,\nworld without end. Amen.'},
+    fatima:{name:'O My Jesus',text:'O my Jesus, forgive us our sins,\nsave us from the fires of hell,\nlead all souls to heaven,\nespecially those in most need of thy mercy. Amen.'}
+  },
+  es:{
+    ourFather:{name:'Padre Nuestro',text:'Padre nuestro, que estás en el cielo,\nsantificado sea tu Nombre;\nvenga a nosotros tu reino;\nhágase tu voluntad\nen la tierra como en el cielo.\nDanos hoy nuestro pan de cada día;\nperdona nuestras ofensas,\ncomo también nosotros perdonamos\na los que nos ofenden;\nno nos dejes caer en la tentación,\ny líbranos del mal. Amén.'},
+    hailMary:{name:'Ave María',text:'Dios te salve, María,\nllena eres de gracia;\nel Señor es contigo.\nBendita tú eres entre todas las mujeres,\ny bendito es el fruto de tu vientre, Jesús.\nSanta María, Madre de Dios,\nruega por nosotros, pecadores,\nahora y en la hora de nuestra muerte. Amén.'},
+    glory:{name:'Gloria',text:'Gloria al Padre,\ny al Hijo,\ny al Espíritu Santo.\nComo era en el principio,\nahora y siempre,\npor los siglos de los siglos. Amén.'},
+    fatima:{name:'Oh Jesús Mío',text:'Oh Jesús mío, perdona nuestros pecados,\nlíbranos del fuego del infierno,\nlleva al cielo todas las almas,\nespecialmente las más necesitadas de tu misericordia. Amén.'}
+  }
+};
+
+function todaySetKey(){
+  const d=new Date().getDay();
+  if(d===1||d===6) return 'joyful';
+  if(d===2||d===5) return 'sorrowful';
+  if(d===3||d===0) return 'glorious';
+  return 'luminous';
+}
+
+function setLang(l){
+  lang=l;
+  document.querySelectorAll('.lang-btn').forEach(b=>{
+    const t=b.textContent.toLowerCase();
+    b.classList.toggle('active',(l==='en'&&(t==='english'||t==='en'))||(l==='es'&&(t==='español'||t==='es')));
+  });
+  updateIntroText();
+  if(document.getElementById('select').classList.contains('active')) renderSetCards();
+  if(document.getElementById('mystery').classList.contains('active')){buildAllSteps();loadMysteryText();showCurrentPrayer();}
+  if(document.getElementById('completion').classList.contains('active')) updateCompletionText();
+}
+
+function updateIntroText(){
+  const t=ui[lang];
+  document.getElementById('i-eyebrow').textContent=t.eyebrow;
+  document.getElementById('i-title').innerHTML=t.title;
+  document.getElementById('i-sub').innerHTML=t.sub;
+  document.getElementById('i-verse').textContent=t.verse;
+  document.getElementById('i-vref').textContent=t.vref;
+  document.getElementById('i-btn').textContent=t.btn;
+  const tk=todaySetKey();
+  const todaySet=ui[lang].sets.find(s=>s.key===tk);
+  document.getElementById('i-day').textContent=todaySet?(lang==='en'?'Today: ':'Hoy: ')+todaySet.name:'';
+}
+
+function showSelect(){
+  ['intro','mystery','completion'].forEach(id=>document.getElementById(id).classList.remove('active'));
+  document.getElementById('select').classList.add('active');
+  document.getElementById('sel-title').textContent=ui[lang].selTitle;
+  document.getElementById('sel-sub').textContent=ui[lang].selSub;
+  renderSetCards();
+}
+
+function renderSetCards(){
+  const container=document.getElementById('set-cards');
+  container.innerHTML='';
+  const tk=todaySetKey();
+  ui[lang].sets.forEach(s=>{
+    const isToday=s.key===tk;
+    const preview=mysteriesData[lang][s.key].map(m=>m.title).join(' · ');
+    const card=document.createElement('div');
+    card.className='mystery-set-card'+(isToday?' today':'');
+    card.innerHTML=`${isToday?`<p class="set-today-badge">${ui[lang].today}</p>`:''}
+      <p class="set-name">${s.name}</p>
+      <p class="set-days">${s.days}</p>
+      <p class="set-preview">${preview}</p>`;
+    card.onclick=()=>startSet(s.key);
+    container.appendChild(card);
+  });
+}
+
+function startSet(key){
+  currentSet=key;currentMystery=0;currentStep=0;
+  document.getElementById('select').classList.remove('active');
+  document.getElementById('mystery').classList.add('active');
+  buildAllSteps();loadMystery();
+}
+
+function buildAllSteps(){
+  const p=prayersData[lang],t=ui[lang];
+  allSteps=[];
+  allSteps.push({label:t.openPrayer,prayer:p.ourFather});
+  for(let i=1;i<=10;i++) allSteps.push({label:t.hailMary(i),prayer:p.hailMary});
+  allSteps.push({label:t.closePrayer,prayer:p.glory});
+  allSteps.push({label:t.fatimaPrayer,prayer:p.fatima});
+}
+
+function loadMystery(){
+  currentStep=0;buildAllSteps();
+  const m=mysteriesData[lang][currentSet][currentMystery];
+  const iframe=document.getElementById('yt-player');
+  iframe.src='';
+  iframe.src=`https://www.youtube.com/embed/${m.videoId}?start=${m.videoStart}&rel=0&modestbranding=1&color=white`;
+  document.getElementById('video-overlay').classList.remove('hidden');
+  loadMysteryText();buildBeads();showCurrentPrayer();
+  const hdr=document.querySelector('.mystery-header');
+  hdr.classList.remove('fade-in');void hdr.offsetWidth;hdr.classList.add('fade-in');
+}
+
+function loadMysteryText(){
+  const m=mysteriesData[lang][currentSet][currentMystery],t=ui[lang];
+  const setInfo=t.sets.find(s=>s.key===currentSet);
+  document.getElementById('m-set-label').textContent=setInfo?setInfo.name:'';
+  document.getElementById('m-number').textContent=m.number;
+  document.getElementById('m-title').textContent=m.title;
+  document.getElementById('m-fruit').textContent=t.fruitLabel+': '+m.fruit;
+  document.getElementById('m-scripture').textContent=m.scripture;
+  document.getElementById('m-meditation').textContent=m.meditation;
+  document.getElementById('vid-label').textContent=t.vidLabel;
+  document.getElementById('overlay-text').textContent=t.watchMeditate;
+  document.getElementById('audio-label').textContent=t.audioLabel;
+  document.getElementById('back-label').textContent=t.back;
+}
+
+function revealVideo(){document.getElementById('video-overlay').classList.add('hidden');}
+
+function buildBeads(){
+  const tracker=document.getElementById('bead-tracker');
+  tracker.innerHTML='';
+  allSteps.forEach((_,i)=>{
+    const b=document.createElement('div');
+    b.className='bead'+(i<currentStep?' prayed':'')+(i===currentStep?' current':'');
+    b.onclick=()=>{currentStep=i;showCurrentPrayer();updateBeads();};
+    tracker.appendChild(b);
+  });
+}
+
+function updateBeads(){
+  document.querySelectorAll('.bead').forEach((b,i)=>{
+    b.className='bead'+(i<currentStep?' prayed':'')+(i===currentStep?' current':'');
+  });
+}
+
+function showCurrentPrayer(){
+  const step=allSteps[currentStep],t=ui[lang];
+  document.getElementById('m-decade-label').textContent=step.label;
+  document.getElementById('p-name').textContent=step.prayer.name;
+  document.getElementById('p-text').innerHTML=step.prayer.text.replace(/\n/g,'<br>');
+  updateBeads();
+  document.getElementById('btn-prev').disabled=(currentStep===0&&currentMystery===0);
+  document.getElementById('lbl-back').textContent=t.backLabel;
+  const isLast=currentStep===allSteps.length-1,isLastM=currentMystery===mysteriesData[lang][currentSet].length-1;
+  document.getElementById('btn-next').innerHTML=isLast&&isLastM?t.complete:(isLast?t.nextMystery+' →':t.nextLabel+' →');
+  if(audioOn) speakPrayer(step.prayer.text);
+}
+
+function nextPrayer(){
+  if(synth) synth.cancel();
+  if(currentStep<allSteps.length-1){currentStep++;showCurrentPrayer();}
+  else if(currentMystery<mysteriesData[lang][currentSet].length-1){currentMystery++;loadMystery();}
+  else showCompletion();
+}
+
+function prevPrayer(){
+  if(synth) synth.cancel();
+  if(currentStep>0){currentStep--;showCurrentPrayer();}
+  else if(currentMystery>0){currentMystery--;buildAllSteps();currentStep=allSteps.length-1;loadMystery();showCurrentPrayer();}
+}
+
+function speakPrayer(text){
+  if(!synth||!audioOn) return;
+  synth.cancel();
+  const utt=new SpeechSynthesisUtterance(text.replace(/\n/g,' '));
+  utt.rate=0.82;utt.pitch=0.95;utt.volume=0.85;
+  utt.lang=lang==='es'?'es-ES':'en-US';
+  const voices=synth.getVoices();
+  const pref=lang==='es'
+    ?voices.find(v=>v.lang.startsWith('es'))
+    :voices.find(v=>v.lang==='en-US'&&v.name.includes('Google'))||voices.find(v=>v.lang.startsWith('en'));
+  if(pref) utt.voice=pref;
+  synth.speak(utt);
+}
+
+function toggleAudio(){
+  audioOn=!audioOn;
+  document.getElementById('audio-dot').className='audio-dot'+(audioOn?' on':'');
+  if(!audioOn&&synth) synth.cancel();
+}
+
+function updateCompletionText(){
+  const t=ui[lang];
+  document.getElementById('c-title').textContent=lang==='en'?'The Rosary is Complete':'El Rosario ha Concluido';
+  document.getElementById('c-text').textContent=t.compText;
+  document.getElementById('c-verse').textContent=t.compVerse;
+  document.getElementById('c-btn').textContent=t.compBtn;
+}
+
+function showCompletion(){
+  if(synth) synth.cancel();
+  document.getElementById('mystery').classList.remove('active');
+  updateCompletionText();
+  document.getElementById('completion').classList.add('active');
+}
+
+updateIntroText();
+window.speechSynthesis?.getVoices();
+</script>
+</body>
+</html>
